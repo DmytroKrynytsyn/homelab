@@ -1,6 +1,9 @@
 # homelab
 My homelab setup
 
+<img width="1024" height="1536" alt="homelab" src="https://github.com/user-attachments/assets/81124133-b9ed-4ed0-b085-a2ae8a7b065b" />
+
+
 Three metal PS, Wyse 5070, Debian, no desktop
 
 ## On all machines
