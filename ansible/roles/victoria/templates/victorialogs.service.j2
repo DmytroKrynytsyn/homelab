@@ -1,0 +1,23 @@
+[Unit]
+Description=VictoriaLogs
+Documentation=https://docs.victoriametrics.com/victorialogs/
+After=network.target
+
+[Service]
+Type=simple
+User={{ victoria_user }}
+Group={{ victoria_group }}
+ExecStart={{ victoria_install_dir }}/victoria-logs-prod \
+  -storageDataPath={{ victoria_logs_storage_data_path }} \
+  -retentionPeriod={{ victoria_logs_retention_period }} \
+  -httpListenAddr=:{{ victoria_logs_port }}
+
+Restart=on-failure
+RestartSec=5s
+LimitNOFILE=65536
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=victorialogs
+
+[Install]
+WantedBy=multi-user.target

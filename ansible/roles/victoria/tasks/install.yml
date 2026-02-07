@@ -1,0 +1,132 @@
+---
+- name: Create victoria group
+  ansible.builtin.group:
+    name: "{{ victoria_group }}"
+    state: present
+    system: true
+
+- name: Create victoria user
+  ansible.builtin.user:
+    name: "{{ victoria_user }}"
+    group: "{{ victoria_group }}"
+    system: true
+    shell: /usr/sbin/nologin
+    home: "{{ victoria_data_dir }}"
+    create_home: false
+
+- name: Create required directories
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: directory
+    owner: "{{ victoria_user }}"
+    group: "{{ victoria_group }}"
+    mode: '0755'
+  loop:
+    - "{{ victoria_install_dir }}"
+    - "{{ victoria_data_dir }}/metrics"
+    - "{{ victoria_data_dir }}/logs"
+    - "{{ victoria_config_dir }}"
+
+- name: Get latest VictoriaMetrics version
+  ansible.builtin.uri:
+    url: https://api.github.com/repos/VictoriaMetrics/VictoriaMetrics/releases/latest
+    return_content: true
+  register: vm_latest
+  when: enable_victoria_metrics
+
+- name: Debug - Show VictoriaMetrics tag
+  ansible.builtin.debug:
+    msg: "VictoriaMetrics tag: {{ vm_latest.json.tag_name }}"
+  when: 
+    - enable_victoria_metrics
+    - vm_latest is defined
+
+- name: Get all releases to find VictoriaLogs tags
+  ansible.builtin.uri:
+    url: https://api.github.com/repos/VictoriaMetrics/VictoriaMetrics/releases?per_page=100
+    return_content: true
+  register: all_vm_releases
+  when: enable_victoria_logs
+
+- name: Filter VictoriaLogs tags
+  ansible.builtin.set_fact:
+    vl_tags: "{{ all_vm_releases.json | map(attribute='tag_name') | select('search', 'victorialogs') | list }}"
+  when: 
+    - enable_victoria_logs
+    - all_vm_releases is defined
+
+- name: Debug - Show VictoriaLogs tags
+  ansible.builtin.debug:
+    msg: "VictoriaLogs tags found: {{ vl_tags }}"
+  when: 
+    - enable_victoria_logs
+    - vl_tags is defined
+
+- name: Set VictoriaLogs version (use latest from list or fallback)
+  ansible.builtin.set_fact:
+    vl_version: "{{ vl_tags[0] | default('v1.0.0-victorialogs') }}"
+  when: enable_victoria_logs
+
+- name: Download VictoriaMetrics binary
+  ansible.builtin.get_url:
+    url: "https://github.com/VictoriaMetrics/VictoriaMetrics/releases/download/{{ vm_latest.json.tag_name }}/victoria-metrics-linux-amd64-{{ vm_latest.json.tag_name }}.tar.gz"
+    dest: "/tmp/victoria-metrics.tar.gz"
+    mode: '0644'
+    force: true
+  when: enable_victoria_metrics
+
+- name: Extract VictoriaMetrics binary
+  ansible.builtin.unarchive:
+    src: "/tmp/victoria-metrics.tar.gz"
+    dest: "{{ victoria_install_dir }}"
+    remote_src: true
+    owner: "{{ victoria_user }}"
+    group: "{{ victoria_group }}"
+  when: enable_victoria_metrics
+  notify: restart victoriametrics
+
+- name: Download VictoriaLogs binary
+  ansible.builtin.get_url:
+    url: "https://github.com/VictoriaMetrics/VictoriaMetrics/releases/download/{{ vl_version }}/victoria-logs-linux-amd64-{{ vl_version }}.tar.gz"
+    dest: "/tmp/victoria-logs.tar.gz"
+    mode: '0644'
+    force: true
+  when: enable_victoria_logs
+
+- name: Extract VictoriaLogs binary
+  ansible.builtin.unarchive:
+    src: "/tmp/victoria-logs.tar.gz"
+    dest: "{{ victoria_install_dir }}"
+    remote_src: true
+    owner: "{{ victoria_user }}"
+    group: "{{ victoria_group }}"
+  when: 
+    - enable_victoria_logs
+    - vl_version is defined
+  notify: restart victorialogs
+
+- name: Set executable permissions on VictoriaMetrics binary
+  ansible.builtin.file:
+    path: "{{ victoria_install_dir }}/victoria-metrics-prod"
+    mode: '0755'
+    owner: "{{ victoria_user }}"
+    group: "{{ victoria_group }}"
+  when: enable_victoria_metrics
+
+- name: Set executable permissions on VictoriaLogs binary
+  ansible.builtin.file:
+    path: "{{ victoria_install_dir }}/victoria-logs-prod"
+    mode: '0755'
+    owner: "{{ victoria_user }}"
+    group: "{{ victoria_group }}"
+  when: 
+    - enable_victoria_logs
+    - vl_version is defined
+
+- name: Clean up downloaded archives
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: absent
+  loop:
+    - "/tmp/victoria-metrics.tar.gz"
+    - "/tmp/victoria-logs.tar.gz"

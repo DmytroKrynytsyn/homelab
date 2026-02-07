@@ -1,0 +1,26 @@
+[Unit]
+Description=VictoriaMetrics
+Documentation=https://docs.victoriametrics.com/
+After=network.target
+
+[Service]
+Type=simple
+User={{ victoria_user }}
+Group={{ victoria_group }}
+ExecStart={{ victoria_install_dir }}/victoria-metrics-prod \
+  -storageDataPath={{ victoria_data_dir }}/metrics \
+  -retentionPeriod={{ victoria_metrics_retention_period }} \
+  -httpListenAddr=:{{ victoria_metrics_port }} \
+  -memory.allowedPercent=80 \
+  -search.maxConcurrentRequests=8 \
+  -insert.maxQueueDuration=30s
+
+Restart=on-failure
+RestartSec=5s
+LimitNOFILE=65536
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=victoriametrics
+
+[Install]
+WantedBy=multi-user.target

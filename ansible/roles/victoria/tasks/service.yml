@@ -1,0 +1,38 @@
+---
+- name: Create VictoriaMetrics systemd service
+  ansible.builtin.template:
+    src: victoriametrics.service.j2
+    dest: /etc/systemd/system/victoriametrics.service
+    owner: root
+    group: root
+    mode: '0644'
+  when: enable_victoria_metrics
+  notify: restart victoriametrics
+
+- name: Create VictoriaLogs systemd service
+  ansible.builtin.template:
+    src: victorialogs.service.j2
+    dest: /etc/systemd/system/victorialogs.service
+    owner: root
+    group: root
+    mode: '0644'
+  when: enable_victoria_logs
+  notify: restart victorialogs
+
+- name: Reload systemd daemon
+  ansible.builtin.systemd:
+    daemon_reload: true
+
+- name: Enable and start VictoriaMetrics service
+  ansible.builtin.systemd:
+    name: victoriametrics
+    enabled: true
+    state: started
+  when: enable_victoria_metrics
+
+- name: Enable and start VictoriaLogs service
+  ansible.builtin.systemd:
+    name: victorialogs
+    enabled: true
+    state: started
+  when: enable_victoria_logs

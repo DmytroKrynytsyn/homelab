@@ -8,18 +8,35 @@ receivers:
       filesystem:
       network:
       processes:
+  
+  journald:
+    directory: /var/log/journal
+    priority: info
+
 
 processors:
   batch:
     timeout: 10s
 
 exporters:
-  prometheus:
-    endpoint: "0.0.0.0:8889"
+  prometheusremotewrite:
+    endpoint: http://localhost:8428/api/v1/write
+    tls:
+      insecure: true
+  
+  otlphttp/victorialogs:
+    endpoint: http://localhost:9428/insert/opentelemetry
+    tls:
+      insecure: true
 
 service:
   pipelines:
     metrics:
       receivers: [hostmetrics]
       processors: [batch]
-      exporters: [prometheus]
+      exporters: [prometheusremotewrite]
+    
+    logs:
+      receivers: [journald]
+      processors: [batch]
+      exporters: [otlphttp/victorialogs]
