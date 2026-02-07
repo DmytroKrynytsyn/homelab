@@ -24,3 +24,5 @@ enable_victoria_logs: true
 
 # Firewall settings (if using)
 configure_firewall: false
+vm_version: "v1.135.0"
+vl_version: "v1.45.0"

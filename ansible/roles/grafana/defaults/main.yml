@@ -1,0 +1,5 @@
+grafana_version: latest
+grafana_port: 3000
+grafana_bind_address: 0.0.0.0
+
+grafana_admin_user: admin

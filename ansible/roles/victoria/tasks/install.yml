@@ -27,49 +27,9 @@
     - "{{ victoria_data_dir }}/logs"
     - "{{ victoria_config_dir }}"
 
-- name: Get latest VictoriaMetrics version
-  ansible.builtin.uri:
-    url: https://api.github.com/repos/VictoriaMetrics/VictoriaMetrics/releases/latest
-    return_content: true
-  register: vm_latest
-  when: enable_victoria_metrics
-
-- name: Debug - Show VictoriaMetrics tag
-  ansible.builtin.debug:
-    msg: "VictoriaMetrics tag: {{ vm_latest.json.tag_name }}"
-  when: 
-    - enable_victoria_metrics
-    - vm_latest is defined
-
-- name: Get all releases to find VictoriaLogs tags
-  ansible.builtin.uri:
-    url: https://api.github.com/repos/VictoriaMetrics/VictoriaMetrics/releases?per_page=100
-    return_content: true
-  register: all_vm_releases
-  when: enable_victoria_logs
-
-- name: Filter VictoriaLogs tags
-  ansible.builtin.set_fact:
-    vl_tags: "{{ all_vm_releases.json | map(attribute='tag_name') | select('search', 'victorialogs') | list }}"
-  when: 
-    - enable_victoria_logs
-    - all_vm_releases is defined
-
-- name: Debug - Show VictoriaLogs tags
-  ansible.builtin.debug:
-    msg: "VictoriaLogs tags found: {{ vl_tags }}"
-  when: 
-    - enable_victoria_logs
-    - vl_tags is defined
-
-- name: Set VictoriaLogs version (use latest from list or fallback)
-  ansible.builtin.set_fact:
-    vl_version: "{{ vl_tags[0] | default('v1.0.0-victorialogs') }}"
-  when: enable_victoria_logs
-
 - name: Download VictoriaMetrics binary
   ansible.builtin.get_url:
-    url: "https://github.com/VictoriaMetrics/VictoriaMetrics/releases/download/{{ vm_latest.json.tag_name }}/victoria-metrics-linux-amd64-{{ vm_latest.json.tag_name }}.tar.gz"
+    url: "https://github.com/VictoriaMetrics/VictoriaMetrics/releases/download/{{ vm_version }}/victoria-metrics-linux-amd64-{{ vm_version }}.tar.gz"
     dest: "/tmp/victoria-metrics.tar.gz"
     mode: '0644'
     force: true
@@ -87,7 +47,7 @@
 
 - name: Download VictoriaLogs binary
   ansible.builtin.get_url:
-    url: "https://github.com/VictoriaMetrics/VictoriaMetrics/releases/download/{{ vl_version }}/victoria-logs-linux-amd64-{{ vl_version }}.tar.gz"
+    url: "https://github.com/VictoriaMetrics/VictoriaLogs/releases/download/{{ vl_version }}/victoria-logs-linux-amd64-{{ vl_version }}.tar.gz"
     dest: "/tmp/victoria-logs.tar.gz"
     mode: '0644'
     force: true
@@ -100,28 +60,18 @@
     remote_src: true
     owner: "{{ victoria_user }}"
     group: "{{ victoria_group }}"
-  when: 
-    - enable_victoria_logs
-    - vl_version is defined
+  when: enable_victoria_logs
   notify: restart victorialogs
 
-- name: Set executable permissions on VictoriaMetrics binary
+- name: Set executable permissions on binaries
   ansible.builtin.file:
-    path: "{{ victoria_install_dir }}/victoria-metrics-prod"
+    path: "{{ item }}"
     mode: '0755'
     owner: "{{ victoria_user }}"
     group: "{{ victoria_group }}"
-  when: enable_victoria_metrics
-
-- name: Set executable permissions on VictoriaLogs binary
-  ansible.builtin.file:
-    path: "{{ victoria_install_dir }}/victoria-logs-prod"
-    mode: '0755'
-    owner: "{{ victoria_user }}"
-    group: "{{ victoria_group }}"
-  when: 
-    - enable_victoria_logs
-    - vl_version is defined
+  loop:
+    - "{{ victoria_install_dir }}/victoria-metrics-prod"
+    - "{{ victoria_install_dir }}/victoria-logs-prod"
 
 - name: Clean up downloaded archives
   ansible.builtin.file:

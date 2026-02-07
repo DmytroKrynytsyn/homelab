@@ -7,28 +7,19 @@
     state: present
     update_cache: true
 
-- name: Query latest OpenTelemetry Collector release
-  uri:
-    url: https://api.github.com/repos/open-telemetry/opentelemetry-collector-releases/releases/latest
-    return_content: true
-  register: otel_release
-
-- name: Extract OpenTelemetry version
-  set_fact:
-    otel_version_tag: "{{ otel_release.json.tag_name }}"
-    otel_version: "{{ otel_release.json.tag_name | regex_replace('^v', '') }}"
-
-- name: Set OpenTelemetry deb filename
-  set_fact:
-    otel_deb_name: "otelcol-contrib_{{ otel_version }}_linux_{{ otel_arch }}.deb"
-
 - name: Download otelcol-contrib deb
   get_url:
-    url: "https://github.com/open-telemetry/opentelemetry-collector-releases/releases/download/{{ otel_version_tag }}/{{ otel_deb_name }}"
-    dest: "{{ otel_tmp_dir }}/{{ otel_deb_name }}"
+    url: "https://github.com/open-telemetry/opentelemetry-collector-releases/releases/download/v{{ otel_version }}/otelcol-contrib_{{ otel_version }}_linux_{{ otel_arch }}.deb"
+    dest: "/tmp/otelcol-contrib_{{ otel_version }}_linux_{{ otel_arch }}.deb"
     mode: '0644'
 
-- name: Install or upgrade otelcol-contrib unconditionally
+- name: Install or upgrade otelcol-contrib
   apt:
-    deb: "{{ otel_tmp_dir }}/{{ otel_deb_name }}"
+    deb: "/tmp/otelcol-contrib_{{ otel_version }}_linux_{{ otel_arch }}.deb"
   notify: Restart otelcol-contrib
+
+- name: Allow otelcol-contrib to read journald
+  user:
+    name: otelcol-contrib
+    groups: systemd-journal
+    append: true
