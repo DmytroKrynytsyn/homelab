@@ -1,0 +1,4 @@
+---
+otel_arch: amd64
+otel_tmp_dir: /tmp
+otel_config_path: /etc/otelcol-contrib//config.yaml

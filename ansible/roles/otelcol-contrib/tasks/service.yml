@@ -1,0 +1,6 @@
+---
+- name: Ensure otelcol-contrib service is enabled and running
+  systemd:
+    name: otelcol-contrib
+    enabled: true
+    state: started

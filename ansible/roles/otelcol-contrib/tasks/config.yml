@@ -1,5 +1,5 @@
 ---
-- name: Create otelcol config directory
+- name: Create otelcol-contrib config directory
   file:
     path: "{{ otel_config_path | dirname }}"
     state: directory
@@ -7,11 +7,11 @@
     group: root
     mode: '0755'
 
-- name: Deploy otelcol configuration
+- name: Deploy otelcol-contrib configuration
   template:
     src: config.yaml.j2
     dest: "{{ otel_config_path }}"
     owner: root
     group: root
     mode: '0644'
-  notify: Restart otelcol
+  notify: Restart otelcol-contrib

@@ -20,15 +20,15 @@
 
 - name: Set OpenTelemetry deb filename
   set_fact:
-    otel_deb_name: "otelcol_{{ otel_version }}_linux_{{ otel_arch }}.deb"
+    otel_deb_name: "otelcol-contrib_{{ otel_version }}_linux_{{ otel_arch }}.deb"
 
-- name: Download otelcol deb
+- name: Download otelcol-contrib deb
   get_url:
     url: "https://github.com/open-telemetry/opentelemetry-collector-releases/releases/download/{{ otel_version_tag }}/{{ otel_deb_name }}"
     dest: "{{ otel_tmp_dir }}/{{ otel_deb_name }}"
     mode: '0644'
 
-- name: Install or upgrade otelcol unconditionally
+- name: Install or upgrade otelcol-contrib unconditionally
   apt:
     deb: "{{ otel_tmp_dir }}/{{ otel_deb_name }}"
-  notify: Restart otelcol
+  notify: Restart otelcol-contrib
