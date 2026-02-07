@@ -1,0 +1,34 @@
+---
+- name: Ensure dependencies are installed
+  apt:
+    name:
+      - ca-certificates
+      - curl
+    state: present
+    update_cache: true
+
+- name: Query latest OpenTelemetry Collector release
+  uri:
+    url: https://api.github.com/repos/open-telemetry/opentelemetry-collector-releases/releases/latest
+    return_content: true
+  register: otel_release
+
+- name: Extract OpenTelemetry version
+  set_fact:
+    otel_version_tag: "{{ otel_release.json.tag_name }}"
+    otel_version: "{{ otel_release.json.tag_name | regex_replace('^v', '') }}"
+
+- name: Set OpenTelemetry deb filename
+  set_fact:
+    otel_deb_name: "otelcol_{{ otel_version }}_linux_{{ otel_arch }}.deb"
+
+- name: Download otelcol deb
+  get_url:
+    url: "https://github.com/open-telemetry/opentelemetry-collector-releases/releases/download/{{ otel_version_tag }}/{{ otel_deb_name }}"
+    dest: "{{ otel_tmp_dir }}/{{ otel_deb_name }}"
+    mode: '0644'
+
+- name: Install or upgrade otelcol unconditionally
+  apt:
+    deb: "{{ otel_tmp_dir }}/{{ otel_deb_name }}"
+  notify: Restart otelcol
