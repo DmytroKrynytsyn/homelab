@@ -1,0 +1,17 @@
+[Unit]
+Description=K3s Server
+After=network.target
+
+[Service]
+Type=exec
+ExecStart={{ k3s_binary_path }} server \
+{% for item in k3s_disable %}
+  --disable {{ item }} \
+{% endfor %}
+  --write-kubeconfig-mode=644
+
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target

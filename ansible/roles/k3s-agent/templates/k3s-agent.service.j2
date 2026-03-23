@@ -1,0 +1,15 @@
+[Unit]
+Description=K3s Agent
+After=network.target
+
+[Service]
+Type=exec
+ExecStart={{ k3s_binary_path }} agent \
+  --server https://{{ hostvars[groups['master'][0]].private_ip }}:6443 \
+  --token {{ hostvars[groups['master'][0]].k3s_cluster_token }}
+
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target

@@ -1,0 +1,13 @@
+- name: Install k3s-agent systemd service
+  template:
+    src: k3s-agent.service.j2
+    dest: /etc/systemd/system/k3s-agent.service
+    mode: "0644"
+  notify: Restart k3s-agent
+
+- name: Enable and start k3s-agent
+  systemd:
+    name: k3s-agent
+    enabled: true
+    state: started
+    daemon_reload: true
