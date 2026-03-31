@@ -1,3 +1,9 @@
+- name: Ensure git is installed
+  apt:
+    name: git
+    state: present
+    update_cache: true
+
 - name: Download k3s binary
   get_url:
     url: "https://github.com/k3s-io/k3s/releases/download/{{ k3s_version }}/k3s"

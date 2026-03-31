@@ -1,3 +1,9 @@
+- name: Allow k3s API server (port 6443) through UFW
+  ufw:
+    rule: allow
+    port: 6443
+    proto: tcp
+
 - name: Install k3s systemd service
   template:
     src: k3s.service.j2
