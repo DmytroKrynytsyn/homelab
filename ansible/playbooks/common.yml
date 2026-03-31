@@ -1,36 +1,5 @@
 ---
 - hosts: all
   become: true
-  tasks:
-    - name: Update apt cache
-      apt:
-        update_cache: yes
-    - name: Upgrade all packages
-      apt:
-        upgrade: dist
-
-    - name: Ensure UFW is installed
-      apt:
-        name: ufw
-        state: present
-        update_cache: true
-
-    - name: Set UFW default incoming policy to deny
-      ufw:
-        direction: incoming
-        policy: deny
-
-    - name: Set UFW default outgoing policy to allow
-      ufw:
-        direction: outgoing
-        policy: allow
-
-    - name: Allow SSH (port 22) through UFW
-      ufw:
-        rule: allow
-        port: 22
-        proto: tcp
-
-    - name: Enable UFW
-      ufw:
-        state: enabled
+  roles:
+    - k3s-ufw

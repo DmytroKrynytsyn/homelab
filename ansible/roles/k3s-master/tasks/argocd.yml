@@ -29,3 +29,53 @@
   shell: /usr/local/bin/k3s kubectl apply -k /root/gitops/argocd
   environment:
     KUBECONFIG: /etc/rancher/k3s/k3s.yaml
+
+- name: Wait for argocd-cmd-params-cm ConfigMap to exist
+  shell: /usr/local/bin/k3s kubectl get configmap argocd-cmd-params-cm -n argocd
+  environment:
+    KUBECONFIG: /etc/rancher/k3s/k3s.yaml
+  retries: 10
+  delay: 3
+  register: result
+  until: result.rc == 0
+
+- name: Patch argocd-cmd-params-cm to enable insecure mode
+  shell: /usr/local/bin/k3s kubectl patch configmap argocd-cmd-params-cm -n argocd -p '{"data":{"server.insecure":"true"}}'
+  environment:
+    KUBECONFIG: /etc/rancher/k3s/k3s.yaml
+  ignore_errors: true
+
+- name: Create ArgoCD ingress
+  template:
+    src: argocd-ingress.yaml.j2
+    dest: /tmp/argocd-ingress.yaml
+
+- name: Apply ArgoCD ingress
+  shell: /usr/local/bin/k3s kubectl apply -f /tmp/argocd-ingress.yaml
+  environment:
+    KUBECONFIG: /etc/rancher/k3s/k3s.yaml
+
+- name: Wait for ArgoCD admin secret to be created
+  shell: /usr/local/bin/k3s kubectl get secret argocd-initial-admin-secret -n argocd
+  environment:
+    KUBECONFIG: /etc/rancher/k3s/k3s.yaml
+  retries: 30
+  delay: 2
+  register: secret_result
+  until: secret_result.rc == 0
+
+- name: Get ArgoCD admin password
+  shell: /usr/local/bin/k3s kubectl -n argocd get secret argocd-initial-admin-secret -o jsonpath="{.data.password}" | base64 --decode
+  environment:
+    KUBECONFIG: /etc/rancher/k3s/k3s.yaml
+  register: argocd_admin_password
+
+- name: Display ArgoCD admin credentials
+  debug:
+    msg: |
+      ArgoCD Admin Credentials:
+      ========================
+      Username: admin
+      Password: {{ argocd_admin_password.stdout }}
+      
+      Access ArgoCD at: https://argocd.local

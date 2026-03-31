@@ -1,0 +1,27 @@
+---
+- name: Allow Kubernetes ports through UFW
+  ufw:
+    rule: allow
+    port: "{{ item }}"
+    proto: tcp
+  loop:
+    - "6443"  # Kubernetes API server
+    - "10250" # Kubelet
+  become: true
+
+- name: Allow Flannel VXLAN port through UFW
+  ufw:
+    rule: allow
+    port: "8472"
+    proto: udp
+  become: true
+
+- name: Allow HTTP and HTTPS through UFW for Traefik ingress
+  ufw:
+    rule: allow
+    port: "{{ item }}"
+    proto: tcp
+  loop:
+    - "80"   # HTTP for Traefik
+    - "443"  # HTTPS for Traefik
+  become: true

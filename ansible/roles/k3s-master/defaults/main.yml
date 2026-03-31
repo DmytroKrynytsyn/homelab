@@ -1,7 +1,5 @@
 k3s_version: v1.26.5+k3s1
 k3s_binary_path: /usr/local/bin/k3s
 
-k3s_disable:
-  - servicelb
-
 argocd_version: v3.2.0
+argocd_domain: local
