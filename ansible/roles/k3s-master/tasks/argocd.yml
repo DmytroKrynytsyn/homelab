@@ -1,0 +1,25 @@
+- name: Create gitops/argocd directory
+  file:
+    path: /root/gitops/argocd
+    state: directory
+    mode: '0755'
+
+- name: Download Argo CD manifest
+  get_url:
+    url: https://raw.githubusercontent.com/argoproj/argo-cd/{{ argocd_version }}/manifests/install.yaml
+    dest: /root/gitops/argocd/install.yaml
+
+- name: Create repo-server patch
+  template:
+    src: repo-server-patch.yaml.j2
+    dest: /root/gitops/argocd/repo-server-patch.yaml
+
+- name: Create kustomization.yaml
+  template:
+    src: kustomization.yaml.j2
+    dest: /root/gitops/argocd/kustomization.yaml
+
+- name: Apply Argo CD with kustomize
+  shell: kubectl apply -k /root/gitops/argocd
+  environment:
+    KUBECONFIG: /etc/rancher/k3s/k3s.yaml
