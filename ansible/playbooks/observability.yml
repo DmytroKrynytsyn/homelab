@@ -3,7 +3,7 @@
   roles:
     - otelcol-contrib
 
-  - hosts: master
+- hosts: master
   become: true
   roles:
     - victoria
