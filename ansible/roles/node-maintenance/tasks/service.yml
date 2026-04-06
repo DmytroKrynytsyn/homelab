@@ -1,0 +1,25 @@
+---
+- name: Deploy maintenance systemd service
+  ansible.builtin.template:
+    src: node-maintenance.service.j2
+    dest: /etc/systemd/system/node-maintenance.service
+    owner: root
+    group: root
+    mode: '0644'
+  notify: restart node-maintenance timer
+
+- name: Deploy maintenance systemd timer
+  ansible.builtin.template:
+    src: node-maintenance.timer.j2
+    dest: /etc/systemd/system/node-maintenance.timer
+    owner: root
+    group: root
+    mode: '0644'
+  notify: restart node-maintenance timer
+
+- name: Enable and start node-maintenance timer
+  ansible.builtin.systemd:
+    name: node-maintenance.timer
+    enabled: true
+    state: started
+    daemon_reload: true
