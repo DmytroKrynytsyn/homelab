@@ -1,0 +1,4 @@
+---
+maintenance_script_path: /usr/local/bin/node-maintenance.sh
+maintenance_log_path: /var/log/node-maintenance.log
+journal_vacuum_size: 200M

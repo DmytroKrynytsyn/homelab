@@ -1,0 +1,16 @@
+---
+- name: Install smartmontools
+  ansible.builtin.apt:  
+    name: smartmontools
+    state: present
+    update_cache: true
+  when: smartctl_device is defined
+
+- name: Deploy maintenance script
+  ansible.builtin.template:
+    src: node-maintenance.sh.j2
+    dest: "{{ maintenance_script_path }}"
+    owner: root
+    group: root
+    mode: '0755'
+  notify: restart node-maintenance timer

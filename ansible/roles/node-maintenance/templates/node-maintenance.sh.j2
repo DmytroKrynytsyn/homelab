@@ -1,0 +1,39 @@
+#!/bin/bash
+set -euo pipefail
+
+LOG="{{ maintenance_log_path }}"
+echo "=== node-maintenance $(date --iso-8601=seconds) ===" >> "$LOG"
+
+# Container image cleanup
+if command -v crictl &>/dev/null; then
+  echo "[images] pruning unused container images" >> "$LOG"
+  crictl rmi --prune >> "$LOG" 2>&1 || echo "[images] WARN: crictl prune failed" >> "$LOG"
+else
+  echo "[images] crictl not found, skipping" >> "$LOG"
+fi
+
+# Journal vacuum
+echo "[journal] vacuuming to {{ journal_vacuum_size }}" >> "$LOG"
+journalctl --vacuum-size={{ journal_vacuum_size }} >> "$LOG" 2>&1
+
+# APT cleanup
+echo "[apt] autoremove and clean" >> "$LOG"
+apt-get autoremove -y >> "$LOG" 2>&1
+apt-get clean >> "$LOG" 2>&1
+
+# dmesg hardware errors
+echo "[dmesg] scanning for errors" >> "$LOG"
+if dmesg --level=err,crit,alert,emerg | grep -q .; then
+  echo "[dmesg] WARN: hardware errors found:" >> "$LOG"
+  dmesg --level=err,crit,alert,emerg >> "$LOG"
+else
+  echo "[dmesg] ok" >> "$LOG"
+fi
+
+{% if smartctl_device is defined %}
+# SMART disk health
+echo "[smart] checking {{ smartctl_device }}" >> "$LOG"
+smartctl -H {{ smartctl_device }} >> "$LOG" 2>&1 || echo "[smart] WARN: smartctl reported issues" >> "$LOG"
+{% endif %}
+
+echo "[done] maintenance complete" >> "$LOG"
