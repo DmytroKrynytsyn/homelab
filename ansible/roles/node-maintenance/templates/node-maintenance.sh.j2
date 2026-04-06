@@ -5,9 +5,10 @@ LOG="{{ maintenance_log_path }}"
 echo "=== node-maintenance $(date --iso-8601=seconds) ===" >> "$LOG"
 
 # Container image cleanup
-if command -v crictl &>/dev/null; then
+if command -v k3s crictl &>/dev/null; then
   echo "[images] pruning unused container images" >> "$LOG"
-  crictl rmi --prune >> "$LOG" 2>&1 || echo "[images] WARN: crictl prune failed" >> "$LOG"
+  k3s crictl rmi --prune >> "$LOG" 2>&1 || echo "[images] WARN: crictl prune failed" >> "$LOG"
+  k3s ctr images prune --all>> "$LOG" 2>&1 || echo "[images] WARN: ctr images prune --all failed" >> "$LOG"
 else
   echo "[images] crictl not found, skipping" >> "$LOG"
 fi
