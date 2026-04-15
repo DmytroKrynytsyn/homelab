@@ -6,6 +6,17 @@
     update_cache: true
   when: smartctl_device is defined
 
+- name: Install rsyslog
+  ansible.builtin.apt:
+    name: rsyslog
+    state: present
+
+- name: Enable and start rsyslog
+  ansible.builtin.systemd:
+    name: rsyslog
+    enabled: true
+    state: started
+
 - name: Deploy maintenance script
   ansible.builtin.template:
     src: node-maintenance.sh.j2
