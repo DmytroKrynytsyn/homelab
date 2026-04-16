@@ -8,24 +8,48 @@ receivers:
       filesystem:
       network:
       processes:
-  
-  journald:
-    directory: /var/log/journal
-    priority: info
 
+  filelog/system:
+    include:
+      - /var/log/syslog
+    start_at: beginning
+
+{% if ollama_enabled %}
+  prometheus/ollama:
+    config:
+      scrape_configs:
+        - job_name: ollama
+          scrape_interval: 30s
+          static_configs:
+            - targets: ["localhost:{{ ollama_port }}"]
+{% endif %}
 
 processors:
+  resource/infra:
+    attributes:
+      - key: layer
+        value: infra
+        action: insert
+
+{% if ollama_enabled %}
+  resource/llm:
+    attributes:
+      - key: layer
+        value: llm
+        action: insert
+{% endif %}
+
   batch:
     timeout: 10s
 
 exporters:
   prometheusremotewrite:
-    endpoint: http://localhost:8428/api/v1/write
+    endpoint: http://victoriametrics.local/api/v1/write
     tls:
       insecure: true
-  
+
   otlphttp/victorialogs:
-    endpoint: http://localhost:9428/insert/opentelemetry
+    endpoint: http://victorialogs.local/insert/opentelemetry
     tls:
       insecure: true
 
@@ -33,10 +57,17 @@ service:
   pipelines:
     metrics:
       receivers: [hostmetrics]
-      processors: [batch]
+      processors: [resource/infra, batch]
       exporters: [prometheusremotewrite]
-    
+
     logs:
-      receivers: [journald]
-      processors: [batch]
+      receivers: [filelog/system]
+      processors: [resource/infra, batch]
       exporters: [otlphttp/victorialogs]
+
+{% if ollama_enabled %}
+    metrics/ollama:
+      receivers: [prometheus/ollama]
+      processors: [resource/llm, batch]
+      exporters: [prometheusremotewrite]
+{% endif %}

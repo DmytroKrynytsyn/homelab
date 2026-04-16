@@ -1,0 +1,12 @@
+---
+- hosts: brain
+  become: true
+  tasks:
+    - name: Add victoria endpoints to /etc/hosts
+      ansible.builtin.lineinfile:
+        path: /etc/hosts
+        line: "{{ hostvars['kserver']['private_ip'] }} victoriametrics.local victorialogs.local"
+        state: present
+  roles:
+    - otelcol-contrib
+    - ollama
