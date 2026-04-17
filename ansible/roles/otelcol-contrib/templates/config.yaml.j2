@@ -20,18 +20,31 @@ processors:
       - key: layer
         value: infra
         action: insert
+{% if otel_node_name is defined %}
+      - key: node_name
+        value: "{{ otel_node_name }}"
+        action: insert
+{% endif %}
 
   batch:
     timeout: 10s
 
 exporters:
   prometheusremotewrite:
-    endpoint: http://victoriametrics.local/api/v1/write
+    endpoint: "{{ victoria_metrics_endpoint | default('http://victoriametrics.local/api/v1/write') }}"
+{% if victoria_metrics_host is defined %}
+    headers:
+      Host: "{{ victoria_metrics_host }}"
+{% endif %}
     tls:
       insecure: true
 
   otlphttp/victorialogs:
-    endpoint: http://victorialogs.local/insert/opentelemetry
+    endpoint: "{{ victoria_logs_endpoint | default('http://victorialogs.local/insert/opentelemetry') }}"
+{% if victoria_logs_host is defined %}
+    headers:
+      Host: "{{ victoria_logs_host }}"
+{% endif %}
     tls:
       insecure: true
 
