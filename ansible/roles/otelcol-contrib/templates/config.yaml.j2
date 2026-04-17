@@ -15,36 +15,30 @@ receivers:
     start_at: beginning
 
 processors:
+  resourcedetection:
+    detectors: [env, system]
+    system:
+      hostname_sources: [os]
+
   resource/infra:
     attributes:
       - key: layer
         value: infra
         action: insert
-{% if otel_node_name is defined %}
-      - key: node_name
-        value: "{{ otel_node_name }}"
-        action: insert
-{% endif %}
 
   batch:
     timeout: 10s
 
 exporters:
   prometheusremotewrite:
-    endpoint: "{{ victoria_metrics_endpoint | default('http://victoriametrics.local/api/v1/write') }}"
-{% if victoria_metrics_host is defined %}
-    headers:
-      Host: "{{ victoria_metrics_host }}"
-{% endif %}
+    endpoint: http://victoriametrics.local/api/v1/write
+    resource_to_telemetry_conversion:
+      enabled: true
     tls:
       insecure: true
 
   otlphttp/victorialogs:
-    endpoint: "{{ victoria_logs_endpoint | default('http://victorialogs.local/insert/opentelemetry') }}"
-{% if victoria_logs_host is defined %}
-    headers:
-      Host: "{{ victoria_logs_host }}"
-{% endif %}
+    endpoint: http://victorialogs.local/insert/opentelemetry
     tls:
       insecure: true
 
@@ -52,10 +46,10 @@ service:
   pipelines:
     metrics:
       receivers: [hostmetrics]
-      processors: [resource/infra, batch]
+      processors: [resourcedetection, resource/infra, batch]
       exporters: [prometheusremotewrite]
 
     logs:
       receivers: [filelog/system]
-      processors: [resource/infra, batch]
+      processors: [resourcedetection, resource/infra, batch]
       exporters: [otlphttp/victorialogs]
