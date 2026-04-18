@@ -1,0 +1,5 @@
+---
+- name: Pull Ollama model
+  ansible.builtin.shell: ollama pull {{ ollama_model }}
+  register: ollama_pull
+  changed_when: "'already up to date' not in ollama_pull.stdout"

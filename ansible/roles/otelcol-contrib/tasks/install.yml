@@ -18,6 +18,12 @@
     deb: "/tmp/otelcol-contrib_{{ otel_version }}_linux_{{ otel_arch }}.deb"
   notify: Restart otelcol-contrib
 
+- name: Add otelcol-contrib user to adm group
+  ansible.builtin.user:
+    name: otelcol-contrib
+    groups: adm
+    append: true
+
 - name: Allow otelcol-contrib to read journald
   user:
     name: otelcol-contrib
