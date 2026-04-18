@@ -4,7 +4,9 @@ After=network.target
 
 [Service]
 Type=exec
-ExecStart={{ k3s_binary_path }} server --write-kubeconfig-mode=644
+ExecStart={{ k3s_binary_path }} server \
+  --write-kubeconfig-mode=644 \
+  --disable=traefik
 
 Restart=always
 RestartSec=5
