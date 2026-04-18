@@ -77,5 +77,5 @@
       ========================
       Username: admin
       Password: {{ argocd_admin_password.stdout }}
-      
-      Access ArgoCD at: https://argocd.local
+
+      Access ArgoCD at: http://argocd.{{ argocd_domain }}
