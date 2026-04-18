@@ -1,101 +1,110 @@
 # homelab
-My homelab setup
 
-<img width="1024" height="1536" alt="homelab" src="https://github.com/user-attachments/assets/81124133-b9ed-4ed0-b085-a2ae8a7b065b" />
+Bare-metal Kubernetes homelab running on three repurposed mini PCs. Debian, no desktop, production-grade patterns.
 
+## Hardware
 
-Three metal PS, Wyse 5070, Debian, no desktop
+| Host | Role | CPU | RAM | Storage |
+|---|---|---|---|---|
+| kserver | k3s master | Intel Celeron N2807 2c | 8GB | 212GB SSD |
+| knode1 | k3s worker | Intel Celeron J4105 4c | 4GB | 13GB eMMC |
+| knode2 | k3s worker | Intel Celeron J4105 4c | 4GB | 13GB eMMC |
+| kbrain | LLM node | Intel Celeron J4105 4c | 8GB | SSD |
 
-## On all machines
-/etc/hosts
-dns of all home lab machines
+All machines run Debian bare-metal with static IPs on a home LAN (`192.168.178.x`).
 
-## On client machine
-~~~
-ssh-keygen -t ed25519 -f ~/.ssh/homelab -C "homelab"
-ssh-copy-id -i ~/.ssh/homelab.pub dmytro@remote_server_ip
-ssh -i ~/.ssh/homelab dmytro@remote_server_ip
+## Cluster
 
-~/.ssh/config
-Host myserver
-    HostName remote_server_ip
-    User dmytro
-    IdentityFile ~/.ssh/homelab
-~~~
+Three-node k3s cluster managed by Ansible. ArgoCD handles all workload deployments via GitOps.
 
+| Component | Role |
+|---|---|
+| k3s | Lightweight Kubernetes |
+| ArgoCD | GitOps — App of Apps pattern |
+| Envoy Gateway | Gateway API ingress — HTTP + HTTPS |
+| cert-manager | Automatic TLS certificate provisioning |
+| Flannel | CNI — VXLAN overlay |
+| klipper-lb | Bare-metal LoadBalancer |
 
-## On each machine
+Storage-heavy workloads (VictoriaMetrics, VictoriaLogs) are pinned to `kserver` via `nodeSelector` — worker eMMC is too constrained.
 
+## Ansible roles
 
-### Network interfaces, static IPs
+| Role | What it does |
+|---|---|
+| `k3s-master` | Installs k3s server, ArgoCD, Gateway API CRDs, Envoy Gateway, GatewayClass |
+| `k3s-agent` | Joins worker nodes to the cluster |
+| `k3s-ufw` | Opens required ports — Kubernetes API, Kubelet, Flannel, HTTP, HTTPS |
+| `node-maintenance` | Systemd timer — cleans up old container images and logs |
+| `otelcol-contrib` | OpenTelemetry Collector — ships host metrics and logs to the cluster |
+| `ollama` | LLM inference on kbrain via Ollama |
 
+## Playbooks
 
-### /etc/network$ sudo cat interfaces
-~~~
-/etc/network# cat interfaces
-# This file describes the network interfaces available on your system
-# and how to activate them. For more information, see interfaces(5).
+| Playbook | Targets | What it runs |
+|---|---|---|
+| `site.yml` | all | Full cluster bootstrap |
+| `k3s.yml` | master + nodes | k3s install and join |
+| `common.yml` | all | UFW rules |
+| `maintenance.yml` | all | Node maintenance role |
+| `brain.yml` | kbrain | otelcol + Ollama |
 
-source /etc/network/interfaces.d/*
+## Bootstrap
 
-# The loopback network interface
-auto lo
-iface lo inet loopback
+One-time OS setup per machine — static IP, SSH hardening, passwordless sudo, UFW deny-all:
 
-# The primary network interface
-#allow-hotplug wlp0s12f0
-#iface wlp0s12f0 inet static
-#	address 192.168.178.92
-#	netmask 255.255.255.0
-#	gateway 192.168.178.1
-#	dns-nameservers 8.8.8.8 8.8.4.4
-#	wpa-ssid <name>
-#	wpa-psk <key>
-
+```bash
+# /etc/network/interfaces — static IP
 auto enp1s0
 iface enp1s0 inet static
-	address 192.168.178.102
-	inetmask 255.255.255.0
-	gateway 192.168.178.1
-	dns-nameservers 8.8.8.8 8.8.4.4
+    address 192.168.178.10x
+    netmask 255.255.255.0
+    gateway 192.168.178.1
+    dns-nameservers 8.8.8.8 8.8.4.4
 
-~~~
+# SSH key auth only
+# /etc/ssh/sshd_config
+PasswordAuthentication no
+PubkeyAuthentication yes
+PermitRootLogin no
 
-
-
-### DNS, only one
-~~~
-vi /etc/resolv.conf
-nameserver 8.8.8.8
-~~~
-
-### Firewall, only explicit allowed
-~~~
+# Firewall
 sudo ufw default deny incoming
 sudo ufw default allow outgoing
 sudo ufw allow 22
 sudo ufw enable
-sudo ufw status
 
-### Harden SSH
-/etc/ssh/sshd_config
-
-PasswordAuthentication no
-ChallengeResponseAuthentication no
-UsePAM yes
-PubkeyAuthentication yes
-PermitRootLogin no
-~~~
-
-### Local sudo, just convinient
-~~~
+# Passwordless sudo
 sudo visudo
-dmytro ALL=(ALL) NOPASSWD:ALL
-~~~
+# dmytro ALL=(ALL) NOPASSWD:ALL
+```
 
+Then run Ansible from your local machine:
 
-# Ansible   
-~~~
-ansible all -i inventory.ini -b -a "uptime"
-ansible-playbook -i inventory.ini basic.yml
-~~~
+```bash
+# Full cluster bootstrap
+ansible-playbook -i ansible/inventory.ini ansible/playbooks/site.yml
+
+# k3s only
+ansible-playbook -i ansible/inventory.ini ansible/playbooks/k3s.yml
+
+# LLM node
+ansible-playbook -i ansible/inventory.ini ansible/playbooks/brain.yml
+```
+
+## Workloads
+
+All deployed via ArgoCD. See individual repos:
+
+- [infra-monitoring](https://github.com/DmytroKrynytsyn/infra-monitoring) — VictoriaMetrics, VictoriaLogs, Grafana, otelcol
+- [agents-infra-test](https://github.com/DmytroKrynytsyn/agents-infra-test) — FastAPI microservice demo
+
+## Design notes
+
+**eMMC vs SSD placement** — storage-heavy components pinned to kserver via `nodeSelector`. Workers are compute-only.
+
+**OS-layer maintenance below Kubernetes** — node cleanup handled via Ansible roles and systemd timers, not CronJobs.
+
+**Inventory-driven conditionals** — hardware-specific tasks (smartctl on kserver only) driven by inventory variables, not playbook conditionals.
+
+**Gateway API over Ingress** — Envoy Gateway with HTTPRoute replaces Traefik Ingress. TLS terminates at the Gateway level via a cert-manager provisioned wildcard cert.
