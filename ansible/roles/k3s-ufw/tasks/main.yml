@@ -16,12 +16,12 @@
     proto: udp
   become: true
 
-- name: Allow HTTP and HTTPS through UFW for Traefik ingress
+- name: Allow HTTP and HTTPS through UFW for Envoy Gateway
   ufw:
     rule: allow
     port: "{{ item }}"
     proto: tcp
   loop:
-    - "80"   # HTTP for Traefik
-    - "443"  # HTTPS for Traefik
+    - "80"   # HTTP
+    - "443"  # HTTPS
   become: true
