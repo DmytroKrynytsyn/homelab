@@ -42,3 +42,21 @@
     --for=condition=Available
   environment:
     KUBECONFIG: /etc/rancher/k3s/k3s.yaml
+
+- name: Apply GatewayClass
+  template:
+    src: gateway-class.yaml.j2
+    dest: /tmp/gateway-class.yaml
+
+- name: Apply GatewayClass to cluster
+  shell: /usr/local/bin/k3s kubectl apply -f /tmp/gateway-class.yaml
+  environment:
+    KUBECONFIG: /etc/rancher/k3s/k3s.yaml
+
+- name: Wait for GatewayClass to be accepted
+  shell: >
+    /usr/local/bin/k3s kubectl wait --timeout=30s
+    gatewayclass/eg
+    --for=condition=Accepted
+  environment:
+    KUBECONFIG: /etc/rancher/k3s/k3s.yaml
