@@ -3,3 +3,5 @@ k3s_binary_path: /usr/local/bin/k3s
 
 argocd_version: v3.2.0
 argocd_domain: local
+
+gateway_api_version: v1.2.1
