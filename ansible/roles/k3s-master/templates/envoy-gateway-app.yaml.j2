@@ -6,12 +6,11 @@ metadata:
 spec:
   project: default
   source:
-    repoURL: oci://docker.io/envoyproxy/gateway-helm
+    repoURL: docker.io/envoyproxy
     chart: gateway-helm
-    targetRevision: v1.4.1
+    targetRevision: {{ envoy_gateway_version }}
     helm:
-      skipCrds: true          # CRDs already installed via Ansible
-      values: |
+      valuesObject:
         config:
           envoyGateway:
             logging:
