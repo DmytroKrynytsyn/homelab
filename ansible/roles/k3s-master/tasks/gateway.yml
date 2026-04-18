@@ -25,7 +25,16 @@
   environment:
     KUBECONFIG: /etc/rancher/k3s/k3s.yaml
 
-- name: Wait for Envoy Gateway to be ready
+- name: Wait for envoy-gateway-system namespace to be created by ArgoCD
+  shell: /usr/local/bin/k3s kubectl get namespace envoy-gateway-system
+  environment:
+    KUBECONFIG: /etc/rancher/k3s/k3s.yaml
+  retries: 20
+  delay: 15
+  register: ns_result
+  until: ns_result.rc == 0
+
+- name: Wait for Envoy Gateway deployment to be available
   shell: >
     /usr/local/bin/k3s kubectl wait --timeout=5m
     -n envoy-gateway-system
