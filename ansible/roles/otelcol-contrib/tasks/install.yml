@@ -1,31 +1,31 @@
 ---
 - name: Ensure dependencies are installed
-  apt:
-    name:
-      - ca-certificates
-      - curl
+  ansible.builtin.package:
+    name: [ca-certificates, curl]
     state: present
-    update_cache: true
 
-- name: Download otelcol-contrib deb
-  get_url:
-    url: "https://github.com/open-telemetry/opentelemetry-collector-releases/releases/download/v{{ otel_version }}/otelcol-contrib_{{ otel_version }}_linux_{{ otel_arch }}.deb"
-    dest: "/tmp/otelcol-contrib_{{ otel_version }}_linux_{{ otel_arch }}.deb"
+- name: Download otelcol-contrib package
+  ansible.builtin.get_url:
+    url: "https://github.com/open-telemetry/opentelemetry-collector-releases/releases/download/v{{ otel_version }}/otelcol-contrib_{{ otel_version }}_linux_amd64.{{ pkg_ext }}"
+    dest: "/tmp/otelcol-contrib.{{ pkg_ext }}"
     mode: '0644'
 
-- name: Install or upgrade otelcol-contrib
-  apt:
-    deb: "/tmp/otelcol-contrib_{{ otel_version }}_linux_{{ otel_arch }}.deb"
+- name: Install otelcol-contrib (Debian)
+  ansible.builtin.apt:
+    deb: "/tmp/otelcol-contrib.deb"
+  when: ansible_os_family == "Debian"
   notify: Restart otelcol-contrib
 
-- name: Add otelcol-contrib user to adm group
+- name: Install otelcol-contrib (Fedora)
+  ansible.builtin.dnf:
+    name: "/tmp/otelcol-contrib.rpm"
+    state: present
+    disable_gpg_check: true
+  when: ansible_os_family == "RedHat"
+  notify: Restart otelcol-contrib
+
+- name: Add otelcol-contrib user to required groups
   ansible.builtin.user:
     name: otelcol-contrib
-    groups: adm
-    append: true
-
-- name: Allow otelcol-contrib to read journald
-  user:
-    name: otelcol-contrib
-    groups: systemd-journal
+    groups: [adm, systemd-journal]
     append: true
