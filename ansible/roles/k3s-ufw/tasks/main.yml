@@ -8,6 +8,7 @@
     - "6443"  # Kubernetes API server
     - "10250" # Kubelet
   become: true
+  when: ufw_enabled | default(true)
 
 - name: Allow Flannel VXLAN port through UFW
   ufw:
@@ -15,6 +16,7 @@
     port: "8472"
     proto: udp
   become: true
+  when: ufw_enabled | default(true)
 
 - name: Allow HTTP and HTTPS through UFW for Envoy Gateway
   ufw:
@@ -25,3 +27,4 @@
     - "80"   # HTTP
     - "443"  # HTTPS
   become: true
+  when: ufw_enabled | default(true)

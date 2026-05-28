@@ -1,0 +1,4 @@
+---
+
+ollama_model: "qwen2.5:32b-instruct-q2_K"
+ufw_enabled: false

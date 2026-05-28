@@ -9,3 +9,4 @@
     port: "{{ ollama_port }}"
     proto: tcp
   become: true
+  when: ufw_enabled | default(true)
