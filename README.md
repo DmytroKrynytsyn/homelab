@@ -9,7 +9,8 @@ Bare-metal Kubernetes homelab running on three repurposed mini PCs. Debian, no d
 | kserver | k3s master | Intel Celeron N2807 2c | 8GB | 212GB SSD |
 | knode1 | k3s worker | Intel Celeron J4105 4c | 4GB | 13GB eMMC |
 | knode2 | k3s worker | Intel Celeron J4105 4c | 4GB | 13GB eMMC |
-| kbrain | LLM node | Intel Celeron J4105 4c | 8GB | SSD |
+| kbrain | LLM node | Intel Celeron J4105 4c | 8GB | 110GB SSD |
+| kbrain2 | LLM node | AMD GX-415GA SOC 4c | 16GB | 56GB SSD |
 
 All machines run Debian bare-metal with static IPs on a home LAN (`192.168.178.x`).
 
