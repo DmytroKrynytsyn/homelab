@@ -55,13 +55,30 @@ Storage-heavy workloads (VictoriaMetrics, VictoriaLogs) are pinned to `kserver` 
 One-time OS setup per machine — static IP, SSH hardening, passwordless sudo, UFW deny-all:
 
 ```bash
-# /etc/network/interfaces — static IP
+# Hostname
+sudo hostnamectl set-hostname <hostname>
+
+# /etc/network/interfaces — static IP (Debian net-tools)
 auto enp1s0
 iface enp1s0 inet static
     address 192.168.178.10x
     netmask 255.255.255.0
     gateway 192.168.178.1
     dns-nameservers 8.8.8.8 8.8.4.4
+
+# /etc/NetworkManager/system-connections/lab-static.nmconnection — static IP (NetworkManager)
+[connection]
+id=lab-static
+type=ethernet
+interface-name=enp1s0
+
+[ipv4]
+method=manual
+address1=192.168.178.x/24,192.168.178.1
+dns=192.168.178.1;1.1.1.1;
+
+[ipv6]
+method=auto
 
 # SSH key auth only
 # /etc/ssh/sshd_config
