@@ -35,7 +35,6 @@ Storage-heavy workloads (VictoriaMetrics, VictoriaLogs) are pinned to `kserver` 
 |---|---|
 | `k3s-master` | Installs k3s server, ArgoCD, Gateway API CRDs, Envoy Gateway, GatewayClass |
 | `k3s-agent` | Joins worker nodes to the cluster |
-| `k3s-ufw` | Opens required ports — Kubernetes API, Kubelet, Flannel, HTTP, HTTPS |
 | `node-maintenance` | Systemd timer — cleans up old container images and logs |
 | `otelcol-contrib` | OpenTelemetry Collector — ships host metrics and logs to the cluster |
 | `ollama` | LLM inference on kbrain via Ollama |
@@ -46,13 +45,12 @@ Storage-heavy workloads (VictoriaMetrics, VictoriaLogs) are pinned to `kserver` 
 |---|---|---|
 | `site.yml` | all | Full cluster bootstrap |
 | `k3s.yml` | master + nodes | k3s install and join |
-| `common.yml` | all | UFW rules |
 | `maintenance.yml` | all | Node maintenance role |
 | `brain.yml` | kbrain | otelcol + Ollama |
 
 ## Bootstrap
 
-One-time OS setup per machine — static IP, SSH hardening, passwordless sudo, UFW deny-all:
+One-time OS setup per machine — static IP, SSH hardening, passwordless sudo:
 
 ```bash
 # Hostname
@@ -85,12 +83,6 @@ method=auto
 PasswordAuthentication no
 PubkeyAuthentication yes
 PermitRootLogin no
-
-# Firewall
-sudo ufw default deny incoming
-sudo ufw default allow outgoing
-sudo ufw allow 22
-sudo ufw enable
 
 # Passwordless sudo
 sudo visudo

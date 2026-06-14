@@ -1,11 +1,9 @@
 - hosts: master
   become: true
   roles:
-    - k3s-ufw
     - k3s-master
 
 - hosts: nodes
   become: true
   roles:
-    - k3s-ufw
     - k3s-agent
