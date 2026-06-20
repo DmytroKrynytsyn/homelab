@@ -53,6 +53,10 @@ Storage-heavy workloads (VictoriaMetrics, VictoriaLogs) are pinned to `kserver` 
 One-time OS setup per machine — static IP, SSH hardening, passwordless sudo:
 
 ```bash
+nmcli con add type ethernet con-name lab-static ifname enp1s0 \
+  ipv4.method manual ipv4.addresses 192.168.178.50/24 \
+  ipv4.gateway 192.168.178.1 ipv4.dns "192.168.178.1 1.1.1.1"
+
 # Hostname
 sudo hostnamectl set-hostname <hostname>
 
