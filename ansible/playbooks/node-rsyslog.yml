@@ -1,0 +1,5 @@
+---
+- hosts: master,nodes
+  become: true
+  roles:
+    - node-rsyslog

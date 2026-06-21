@@ -1,0 +1,20 @@
+---
+- name: Install rsyslog
+  ansible.builtin.dnf:
+    name: rsyslog
+    state: present
+
+- name: Ensure rsyslog is enabled and running
+  ansible.builtin.systemd:
+    name: rsyslog
+    enabled: true
+    state: started
+
+- name: Mirror journald entries to /var/log/syslog
+  ansible.builtin.template:
+    src: syslog.conf.j2
+    dest: /etc/rsyslog.d/49-syslog.conf
+    owner: root
+    group: root
+    mode: '0644'
+  notify: Restart rsyslog

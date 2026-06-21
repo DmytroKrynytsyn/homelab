@@ -1,4 +1,5 @@
 - import_playbook: node-firewalld.yml
+- import_playbook: node-rsyslog.yml
 - import_playbook: k3s-master.yml
 - import_playbook: k3s-agent.yml
 - import_playbook: k3s-labels.yml
