@@ -6,11 +6,11 @@ Bare-metal Kubernetes homelab running on three repurposed mini PCs. Debian, no d
 
 | Host | Role | CPU | RAM | Storage |
 |---|---|---|---|---|
-| kserver | k3s master | Intel Celeron N2807 2c | 8GB | 212GB SSD |
-| knode1 | k3s worker | Intel Celeron J4105 4c | 4GB | 13GB eMMC |
-| knode2 | k3s worker | Intel Celeron J4105 4c | 4GB | 13GB eMMC |
-| kbrain | LLM node | Intel Celeron J4105 4c | 8GB | 110GB SSD |
-| kbrain2 | LLM node | AMD GX-415GA SOC 4c | 16GB | 56GB SSD |
+| kserver | k3s master | Intel Celeron N2807 2c | 8GB, DDR3 | 212GB SSD |
+| knode1 | k3s worker | Intel Celeron J4105 4c | 4GB, DDR4 | 13GB eMMC |
+| knode2 | k3s worker | Intel Celeron J4105 4c | 4GB, DDR4 | 13GB eMMC |
+| kbrain | LLM node | Intel Celeron J4105 4c | 8GB, DDR4 | 110GB SSD |
+| kbrain2 | LLM node | AMD GX-415GA SOC 4c | 16GB, DDR3 | 56GB SSD |
 
 All machines run Debian bare-metal with static IPs on a home LAN (`192.168.178.x`).
 
@@ -62,6 +62,10 @@ Storage-heavy workloads (VictoriaMetrics, VictoriaLogs) are pinned to `kserver` 
 One-time OS setup per machine — static IP, SSH hardening, passwordless sudo:
 
 ```bash
+nmcli con add type ethernet con-name lab-static ifname enp1s0 \
+  ipv4.method manual ipv4.addresses 192.168.178.50/24 \
+  ipv4.gateway 192.168.178.1 ipv4.dns "192.168.178.1 1.1.1.1"
+
 # Hostname
 sudo hostnamectl set-hostname <hostname>
 
