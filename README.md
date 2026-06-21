@@ -33,7 +33,7 @@ Storage-heavy workloads (VictoriaMetrics, VictoriaLogs) are pinned to `kserver` 
 
 | Role | What it does |
 |---|---|
-| `firewalld` | Opens k3s API, kubelet, and flannel VXLAN ports |
+| `node-firewalld` | Opens k3s API, kubelet, and flannel VXLAN ports |
 | `k3s-master` | Installs k3s server (schedulable — runs pods like any other node) |
 | `k3s-agent` | Joins worker nodes to the cluster |
 | `k3s-labels` | Labels every node with `hostname=<hostname>` |
@@ -48,13 +48,13 @@ Storage-heavy workloads (VictoriaMetrics, VictoriaLogs) are pinned to `kserver` 
 | Playbook | Targets | What it runs |
 |---|---|---|
 | `site.yml` | all | Full cluster bootstrap |
-| `firewalld.yml` | master + nodes | Opens k3s API, kubelet, and flannel VXLAN ports |
+| `node-firewalld.yml` | master + nodes | Opens k3s API, kubelet, and flannel VXLAN ports |
 | `k3s-master.yml` | master | Installs k3s server |
 | `k3s-agent.yml` | nodes | Joins worker nodes to the cluster |
 | `k3s-labels.yml` | master | Labels every node with `hostname=<hostname>` |
 | `k3s-argocd.yml` | master | Installs ArgoCD |
 | `k3s-gateway.yml` | master | Gateway API, Envoy Gateway |
-| `maintenance.yml` | all | Node maintenance role |
+| `node-maintenance.yml` | all | Node maintenance role |
 | `brain.yml` | kbrain | otelcol + Ollama |
 
 ## Bootstrap
