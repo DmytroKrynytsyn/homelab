@@ -1,0 +1,11 @@
+cert_manager_version: v1.17.2
+
+homelab_tls_dns_names:
+  - "*.local"
+  - grafana.local
+  - victoriametrics.local
+  - victorialogs.local
+  - argocd.local
+  - testapp.local
+homelab_tls_duration: 87600h
+homelab_tls_renew_before: 720h

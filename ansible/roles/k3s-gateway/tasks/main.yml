@@ -67,8 +67,16 @@
   shell: >
     kubectl wait --timeout=60s
     -n envoy-gateway-system
-    gateway/gw
+    gateway/homelab-gateway
     --for=condition=Programmed
+
+- name: Apply ReferenceGrants
+  template:
+    src: reference-grant.yaml.j2
+    dest: /tmp/reference-grant.yaml
+
+- name: Apply ReferenceGrants to cluster
+  shell: kubectl apply -f /tmp/reference-grant.yaml
 
 - name: Create ArgoCD ingress
   template:

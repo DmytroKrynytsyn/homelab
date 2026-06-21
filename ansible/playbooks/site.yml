@@ -3,5 +3,6 @@
 - import_playbook: k3s-agent.yml
 - import_playbook: k3s-labels.yml
 - import_playbook: k3s-argocd.yml
+- import_playbook: k3s-certs.yml
 - import_playbook: k3s-gateway.yml
 #- import_playbook: node-maintenance.yml

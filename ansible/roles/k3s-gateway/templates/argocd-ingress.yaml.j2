@@ -5,7 +5,7 @@ metadata:
   namespace: argocd
 spec:
   parentRefs:
-    - name: gw
+    - name: homelab-gateway
       namespace: envoy-gateway-system
   hostnames:
     - argocd.{{ argocd_domain }}

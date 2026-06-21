@@ -1,0 +1,48 @@
+- name: Deploy cert-manager ArgoCD Application
+  template:
+    src: cert-manager-app.yaml.j2
+    dest: /tmp/cert-manager-app.yaml
+
+- name: Apply cert-manager ArgoCD Application
+  shell: kubectl apply -f /tmp/cert-manager-app.yaml
+
+- name: Wait for cert-manager namespace to be created by ArgoCD
+  shell: kubectl get namespace cert-manager
+  retries: 20
+  delay: 15
+  register: ns_result
+  until: ns_result.rc == 0
+
+- name: Wait for cert-manager webhook to be available
+  shell: >
+    kubectl wait --timeout=5m
+    -n cert-manager
+    deployment/cert-manager-webhook
+    --for=condition=Available
+
+- name: Ensure envoy-gateway-system namespace exists
+  shell: kubectl create namespace envoy-gateway-system --dry-run=client -o yaml | kubectl apply -f -
+  ignore_errors: true
+
+- name: Apply ClusterIssuer
+  template:
+    src: cluster-issuer.yaml.j2
+    dest: /tmp/cluster-issuer.yaml
+
+- name: Apply ClusterIssuer to cluster
+  shell: kubectl apply -f /tmp/cluster-issuer.yaml
+
+- name: Apply homelab-tls Certificate
+  template:
+    src: certificate.yaml.j2
+    dest: /tmp/certificate.yaml
+
+- name: Apply homelab-tls Certificate to cluster
+  shell: kubectl apply -f /tmp/certificate.yaml
+
+- name: Wait for homelab-tls secret to be created
+  shell: kubectl get secret homelab-tls -n envoy-gateway-system
+  retries: 20
+  delay: 5
+  register: secret_result
+  until: secret_result.rc == 0
