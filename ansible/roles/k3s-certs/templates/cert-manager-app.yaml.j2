@@ -13,6 +13,17 @@ spec:
       valuesObject:
         crds:
           enabled: true
+        nodeSelector:
+          purpose: kcontrol
+        webhook:
+          nodeSelector:
+            purpose: kcontrol
+        cainjector:
+          nodeSelector:
+            purpose: kcontrol
+        startupapicheck:
+          nodeSelector:
+            purpose: kcontrol
   destination:
     server: https://kubernetes.default.svc
     namespace: cert-manager
