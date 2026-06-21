@@ -13,3 +13,11 @@
   environment:
     KUBECONFIG: /etc/rancher/k3s/k3s.yaml
   loop: "{{ groups['master'] + groups['nodes'] }}"
+
+- name: Label nodes with their purpose
+  shell: >
+    kubectl label node {{ item }}
+    purpose={{ item | regex_replace('[0-9]+$', '') }} --overwrite
+  environment:
+    KUBECONFIG: /etc/rancher/k3s/k3s.yaml
+  loop: "{{ groups['master'] + groups['nodes'] }}"

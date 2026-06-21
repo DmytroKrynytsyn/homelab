@@ -6,7 +6,7 @@ After=network.target
 Type=exec
 ExecStart={{ k3s_binary_path }} agent \
   --server https://{{ hostvars[groups['master'][0]].private_ip }}:6443 \
-  --token {{ hostvars[groups['master'][0]].k3s_cluster_token }}
+  --token {{ k3s_cluster_token }}
 
 Restart=always
 RestartSec=5
