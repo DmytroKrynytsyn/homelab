@@ -1,13 +1,13 @@
 ---
 - name: Install smartmontools
-  ansible.builtin.apt:  
+  ansible.builtin.dnf:
     name: smartmontools
     state: present
     update_cache: true
   when: smartctl_device is defined
 
 - name: Install rsyslog
-  ansible.builtin.apt:
+  ansible.builtin.dnf:
     name: rsyslog
     state: present
 

@@ -33,8 +33,12 @@ Storage-heavy workloads (VictoriaMetrics, VictoriaLogs) are pinned to `kserver` 
 
 | Role | What it does |
 |---|---|
-| `k3s-master` | Installs k3s server, ArgoCD, Gateway API CRDs, Envoy Gateway, GatewayClass |
+| `firewalld` | Opens k3s API, kubelet, and flannel VXLAN ports |
+| `k3s-master` | Installs k3s server (schedulable — runs pods like any other node) |
 | `k3s-agent` | Joins worker nodes to the cluster |
+| `k3s-labels` | Labels every node with `hostname=<hostname>` |
+| `k3s-argocd` | Installs ArgoCD, ArgoCD ingress route |
+| `k3s-gateway` | Gateway API CRDs, Envoy Gateway, GatewayClass |
 | `node-maintenance` | Systemd timer — cleans up old container images and logs |
 | `otelcol-contrib` | OpenTelemetry Collector — ships host metrics and logs to the cluster |
 | `ollama` | LLM inference on kbrain via Ollama |
@@ -44,7 +48,12 @@ Storage-heavy workloads (VictoriaMetrics, VictoriaLogs) are pinned to `kserver` 
 | Playbook | Targets | What it runs |
 |---|---|---|
 | `site.yml` | all | Full cluster bootstrap |
-| `k3s.yml` | master + nodes | k3s install and join |
+| `firewalld.yml` | master + nodes | Opens k3s API, kubelet, and flannel VXLAN ports |
+| `k3s-master.yml` | master | Installs k3s server |
+| `k3s-agent.yml` | nodes | Joins worker nodes to the cluster |
+| `k3s-labels.yml` | master | Labels every node with `hostname=<hostname>` |
+| `k3s-argocd.yml` | master | Installs ArgoCD |
+| `k3s-gateway.yml` | master | Gateway API, Envoy Gateway |
 | `maintenance.yml` | all | Node maintenance role |
 | `brain.yml` | kbrain | otelcol + Ollama |
 
@@ -95,8 +104,12 @@ Then run Ansible from your local machine:
 # Full cluster bootstrap
 ansible-playbook -i ansible/inventory.ini ansible/playbooks/site.yml
 
-# k3s only
-ansible-playbook -i ansible/inventory.ini ansible/playbooks/k3s.yml
+# k3s only, step by step
+ansible-playbook -i ansible/inventory.ini ansible/playbooks/k3s-master.yml
+ansible-playbook -i ansible/inventory.ini ansible/playbooks/k3s-agent.yml
+ansible-playbook -i ansible/inventory.ini ansible/playbooks/k3s-labels.yml
+ansible-playbook -i ansible/inventory.ini ansible/playbooks/k3s-argocd.yml
+ansible-playbook -i ansible/inventory.ini ansible/playbooks/k3s-gateway.yml
 
 # LLM node
 ansible-playbook -i ansible/inventory.ini ansible/playbooks/brain.yml

@@ -1,2 +1,2 @@
 ---
-pkg_ext: "{{ 'deb' if ansible_facts['os_family'] == 'Debian' else 'rpm' }}"
+pkg_ext: "rpm"

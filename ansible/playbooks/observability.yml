@@ -1,9 +1,0 @@
-- hosts: all
-  become: true
-  roles:
-    - otelcol-contrib
-
-- hosts: master
-  become: true
-  roles:
-    - victoria

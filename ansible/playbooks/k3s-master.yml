@@ -2,8 +2,3 @@
   become: true
   roles:
     - k3s-master
-
-- hosts: nodes
-  become: true
-  roles:
-    - k3s-agent

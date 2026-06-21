@@ -1,0 +1,4 @@
+- hosts: master,nodes
+  become: true
+  roles:
+    - firewalld

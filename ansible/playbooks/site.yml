@@ -1,5 +1,7 @@
-- import_playbook: common.yml
-- import_playbook: k3s.yml
-- import_playbook: maintenance.yml
-- import_playbook: brain.yml
-#- import_playbook: observability.yml
+- import_playbook: firewalld.yml
+- import_playbook: k3s-master.yml
+- import_playbook: k3s-agent.yml
+#- import_playbook: k3s-labels.yml
+#- import_playbook: k3s-argocd.yml
+#- import_playbook: k3s-gateway.yml
+#- import_playbook: maintenance.yml

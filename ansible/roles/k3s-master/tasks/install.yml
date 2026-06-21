@@ -1,5 +1,5 @@
 - name: Ensure git is installed
-  apt:
+  ansible.builtin.dnf:
     name: git
     state: present
     update_cache: true
@@ -9,3 +9,9 @@
     url: "https://github.com/k3s-io/k3s/releases/download/{{ k3s_version }}/k3s"
     dest: "{{ k3s_binary_path }}"
     mode: "0755"
+
+- name: Symlink kubectl to k3s binary
+  ansible.builtin.file:
+    src: "{{ k3s_binary_path }}"
+    dest: /usr/local/bin/kubectl
+    state: link

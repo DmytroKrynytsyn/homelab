@@ -1,13 +1,13 @@
 - name: Apply Gateway API CRDs
   shell: >
-    /usr/local/bin/k3s kubectl apply -f
+    kubectl apply -f
     https://github.com/kubernetes-sigs/gateway-api/releases/download/{{ gateway_api_version }}/standard-install.yaml
   environment:
     KUBECONFIG: /etc/rancher/k3s/k3s.yaml
 
 - name: Wait for Gateway API CRDs to be established
   shell: >
-    /usr/local/bin/k3s kubectl wait --for=condition=Established
+    kubectl wait --for=condition=Established
     crd/gateways.gateway.networking.k8s.io
     crd/httproutes.gateway.networking.k8s.io
     crd/referencegrants.gateway.networking.k8s.io
@@ -21,12 +21,12 @@
     dest: /tmp/envoy-gateway-app.yaml
 
 - name: Apply Envoy Gateway ArgoCD Application
-  shell: /usr/local/bin/k3s kubectl apply -f /tmp/envoy-gateway-app.yaml
+  shell: kubectl apply -f /tmp/envoy-gateway-app.yaml
   environment:
     KUBECONFIG: /etc/rancher/k3s/k3s.yaml
 
 - name: Wait for envoy-gateway-system namespace to be created by ArgoCD
-  shell: /usr/local/bin/k3s kubectl get namespace envoy-gateway-system
+  shell: kubectl get namespace envoy-gateway-system
   environment:
     KUBECONFIG: /etc/rancher/k3s/k3s.yaml
   retries: 20
@@ -36,7 +36,7 @@
 
 - name: Wait for Envoy Gateway deployment to be available
   shell: >
-    /usr/local/bin/k3s kubectl wait --timeout=5m
+    kubectl wait --timeout=5m
     -n envoy-gateway-system
     deployment/envoy-gateway
     --for=condition=Available
@@ -49,13 +49,13 @@
     dest: /tmp/gateway-class.yaml
 
 - name: Apply GatewayClass to cluster
-  shell: /usr/local/bin/k3s kubectl apply -f /tmp/gateway-class.yaml
+  shell: kubectl apply -f /tmp/gateway-class.yaml
   environment:
     KUBECONFIG: /etc/rancher/k3s/k3s.yaml
 
 - name: Wait for GatewayClass to be accepted
   shell: >
-    /usr/local/bin/k3s kubectl wait --timeout=30s
+    kubectl wait --timeout=30s
     gatewayclass/eg
     --for=condition=Accepted
   environment:

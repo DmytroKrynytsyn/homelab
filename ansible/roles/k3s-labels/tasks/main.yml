@@ -1,0 +1,15 @@
+- name: Wait for nodes to be Ready
+  shell: >
+    kubectl wait --for=condition=Ready
+    node/{{ item }} --timeout=60s
+  environment:
+    KUBECONFIG: /etc/rancher/k3s/k3s.yaml
+  loop: "{{ groups['master'] + groups['nodes'] }}"
+
+- name: Label nodes with their hostname
+  shell: >
+    kubectl label node {{ item }}
+    hostname={{ item }} --overwrite
+  environment:
+    KUBECONFIG: /etc/rancher/k3s/k3s.yaml
+  loop: "{{ groups['master'] + groups['nodes'] }}"

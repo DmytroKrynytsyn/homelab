@@ -17,10 +17,10 @@ fi
 echo "[journal] vacuuming to {{ journal_vacuum_size }}" >> "$LOG"
 journalctl --vacuum-size={{ journal_vacuum_size }} >> "$LOG" 2>&1
 
-# APT cleanup
-echo "[apt] autoremove and clean" >> "$LOG"
-apt-get autoremove -y >> "$LOG" 2>&1
-apt-get clean >> "$LOG" 2>&1
+# DNF cleanup
+echo "[dnf] autoremove and clean" >> "$LOG"
+dnf autoremove -y >> "$LOG" 2>&1
+dnf clean all >> "$LOG" 2>&1
 
 # dmesg hardware errors
 echo "[dmesg] scanning for errors" >> "$LOG"
