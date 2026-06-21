@@ -32,6 +32,10 @@
     -n envoy-gateway-system
     deployment/envoy-gateway
     --for=condition=Available
+  register: deploy_result
+  retries: 10
+  delay: 10
+  until: deploy_result.rc == 0
 
 - name: Apply EnvoyProxy
   template:
