@@ -45,16 +45,6 @@
     KUBECONFIG: /etc/rancher/k3s/k3s.yaml
   ignore_errors: true
 
-- name: Create ArgoCD ingress
-  template:
-    src: argocd-ingress.yaml.j2
-    dest: /tmp/argocd-ingress.yaml
-
-- name: Apply ArgoCD ingress
-  shell: kubectl apply -f /tmp/argocd-ingress.yaml
-  environment:
-    KUBECONFIG: /etc/rancher/k3s/k3s.yaml
-
 - name: Wait for ArgoCD admin secret to be created
   shell: kubectl get secret argocd-initial-admin-secret -n argocd
   environment:
@@ -77,5 +67,3 @@
       ========================
       Username: admin
       Password: {{ argocd_admin_password.stdout }}
-
-      Access ArgoCD at: http://argocd.{{ argocd_domain }}

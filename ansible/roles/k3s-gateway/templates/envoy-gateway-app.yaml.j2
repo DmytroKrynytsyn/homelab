@@ -16,6 +16,10 @@ spec:
             logging:
               level:
                 default: info
+        deployment:
+          pod:
+            nodeSelector:
+              purpose: kcontrol
   destination:
     server: https://kubernetes.default.svc
     namespace: envoy-gateway-system
