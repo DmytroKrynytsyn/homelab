@@ -32,3 +32,23 @@
     permanent: true
     immediate: true
     state: enabled
+
+# Forwarded pod-to-pod/Service traffic (decapsulated flannel VXLAN) is dropped by
+# firewalld's default zone unless its source is trusted. Trusting the pod/service
+# CIDRs (rather than the cni0/flannel.1 interfaces) works before k3s/flannel even
+# exist, since the CIDRs are static k3s defaults.
+- name: Trust pod CIDR for pod-to-pod/Service traffic
+  ansible.posix.firewalld:
+    zone: trusted
+    source: "{{ firewalld_pod_cidr }}"
+    permanent: true
+    immediate: true
+    state: enabled
+
+- name: Trust service CIDR for ClusterIP traffic
+  ansible.posix.firewalld:
+    zone: trusted
+    source: "{{ firewalld_service_cidr }}"
+    permanent: true
+    immediate: true
+    state: enabled

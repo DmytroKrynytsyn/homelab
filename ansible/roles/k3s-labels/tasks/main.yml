@@ -1,23 +1,15 @@
-- name: Wait for nodes to be Ready
-  shell: >
-    kubectl wait --for=condition=Ready
-    node/{{ item }} --timeout=60s
-  environment:
-    KUBECONFIG: /etc/rancher/k3s/k3s.yaml
+- name: Wait for nodes to register and become Ready
+  shell: kubectl wait --for=condition=Ready node/{{ item }} --timeout=60s
   loop: "{{ groups['master'] + groups['nodes'] }}"
+  register: wait_result
+  retries: 10
+  delay: 6
+  until: wait_result.rc == 0
 
-- name: Label nodes with their hostname
+- name: Label nodes with their hostname and purpose
   shell: >
     kubectl label node {{ item }}
-    hostname={{ item }} --overwrite
-  environment:
-    KUBECONFIG: /etc/rancher/k3s/k3s.yaml
-  loop: "{{ groups['master'] + groups['nodes'] }}"
-
-- name: Label nodes with their purpose
-  shell: >
-    kubectl label node {{ item }}
-    purpose={{ item | regex_replace('[0-9]+$', '') }} --overwrite
-  environment:
-    KUBECONFIG: /etc/rancher/k3s/k3s.yaml
+    hostname={{ item }}
+    purpose={{ item | regex_replace('[0-9]+$', '') }}
+    --overwrite
   loop: "{{ groups['master'] + groups['nodes'] }}"

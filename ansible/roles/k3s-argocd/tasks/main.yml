@@ -21,19 +21,13 @@
 
 - name: Create argocd namespace
   shell: kubectl create namespace argocd --dry-run=client -o yaml | kubectl apply -f -
-  environment:
-    KUBECONFIG: /etc/rancher/k3s/k3s.yaml
   ignore_errors: true
 
 - name: Apply Argo CD with kustomize
   shell: kubectl apply -k /root/gitops/argocd
-  environment:
-    KUBECONFIG: /etc/rancher/k3s/k3s.yaml
 
 - name: Wait for argocd-cmd-params-cm ConfigMap to exist
   shell: kubectl get configmap argocd-cmd-params-cm -n argocd
-  environment:
-    KUBECONFIG: /etc/rancher/k3s/k3s.yaml
   retries: 10
   delay: 3
   register: result
@@ -41,14 +35,10 @@
 
 - name: Patch argocd-cmd-params-cm to enable insecure mode
   shell: kubectl patch configmap argocd-cmd-params-cm -n argocd -p '{"data":{"server.insecure":"true"}}'
-  environment:
-    KUBECONFIG: /etc/rancher/k3s/k3s.yaml
   ignore_errors: true
 
 - name: Wait for ArgoCD admin secret to be created
   shell: kubectl get secret argocd-initial-admin-secret -n argocd
-  environment:
-    KUBECONFIG: /etc/rancher/k3s/k3s.yaml
   retries: 30
   delay: 2
   register: secret_result
@@ -56,8 +46,6 @@
 
 - name: Get ArgoCD admin password
   shell: kubectl -n argocd get secret argocd-initial-admin-secret -o jsonpath="{.data.password}" | base64 --decode
-  environment:
-    KUBECONFIG: /etc/rancher/k3s/k3s.yaml
   register: argocd_admin_password
 
 - name: Display ArgoCD admin credentials

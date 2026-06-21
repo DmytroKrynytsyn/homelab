@@ -2,8 +2,6 @@
   shell: >
     kubectl apply -f
     https://github.com/kubernetes-sigs/gateway-api/releases/download/{{ gateway_api_version }}/standard-install.yaml
-  environment:
-    KUBECONFIG: /etc/rancher/k3s/k3s.yaml
 
 - name: Wait for Gateway API CRDs to be established
   shell: >
@@ -12,8 +10,6 @@
     crd/httproutes.gateway.networking.k8s.io
     crd/referencegrants.gateway.networking.k8s.io
     --timeout=60s
-  environment:
-    KUBECONFIG: /etc/rancher/k3s/k3s.yaml
 
 - name: Deploy Envoy Gateway ArgoCD Application
   template:
@@ -22,13 +18,9 @@
 
 - name: Apply Envoy Gateway ArgoCD Application
   shell: kubectl apply -f /tmp/envoy-gateway-app.yaml
-  environment:
-    KUBECONFIG: /etc/rancher/k3s/k3s.yaml
 
 - name: Wait for envoy-gateway-system namespace to be created by ArgoCD
   shell: kubectl get namespace envoy-gateway-system
-  environment:
-    KUBECONFIG: /etc/rancher/k3s/k3s.yaml
   retries: 20
   delay: 15
   register: ns_result
@@ -40,8 +32,14 @@
     -n envoy-gateway-system
     deployment/envoy-gateway
     --for=condition=Available
-  environment:
-    KUBECONFIG: /etc/rancher/k3s/k3s.yaml
+
+- name: Apply EnvoyProxy
+  template:
+    src: envoy-proxy.yaml.j2
+    dest: /tmp/envoy-proxy.yaml
+
+- name: Apply EnvoyProxy to cluster
+  shell: kubectl apply -f /tmp/envoy-proxy.yaml
 
 - name: Apply GatewayClass
   template:
@@ -50,16 +48,27 @@
 
 - name: Apply GatewayClass to cluster
   shell: kubectl apply -f /tmp/gateway-class.yaml
-  environment:
-    KUBECONFIG: /etc/rancher/k3s/k3s.yaml
 
 - name: Wait for GatewayClass to be accepted
   shell: >
     kubectl wait --timeout=30s
     gatewayclass/eg
     --for=condition=Accepted
-  environment:
-    KUBECONFIG: /etc/rancher/k3s/k3s.yaml
+
+- name: Apply Gateway
+  template:
+    src: gateway.yaml.j2
+    dest: /tmp/gateway.yaml
+
+- name: Apply Gateway to cluster
+  shell: kubectl apply -f /tmp/gateway.yaml
+
+- name: Wait for Gateway to be programmed
+  shell: >
+    kubectl wait --timeout=60s
+    -n envoy-gateway-system
+    gateway/gw
+    --for=condition=Programmed
 
 - name: Create ArgoCD ingress
   template:
@@ -68,8 +77,6 @@
 
 - name: Apply ArgoCD ingress
   shell: kubectl apply -f /tmp/argocd-ingress.yaml
-  environment:
-    KUBECONFIG: /etc/rancher/k3s/k3s.yaml
 
 - name: Display ArgoCD URL
   debug:
