@@ -44,9 +44,11 @@
   register: secret_result
   until: secret_result.rc == 0
 
-- name: Get ArgoCD admin password
-  shell: kubectl -n argocd get secret argocd-initial-admin-secret -o jsonpath="{.data.password}" | base64 --decode
-  register: argocd_admin_password
+- name: Set real ArgoCD admin password in argocd-secret
+  shell: kubectl -n argocd patch secret argocd-secret -p '{"stringData":{"admin.password":"{{ argocd_admin_password_hash }}","admin.passwordMtime":"{{ ansible_facts.date_time.iso8601 }}"}}'
+
+- name: Set ArgoCD admin password in argocd-initial-admin-secret
+  shell: kubectl -n argocd patch secret argocd-initial-admin-secret -p '{"stringData":{"password":"{{ argocd_admin_password }}"}}'
 
 - name: Display ArgoCD admin credentials
   debug:
@@ -54,4 +56,4 @@
       ArgoCD Admin Credentials:
       ========================
       Username: admin
-      Password: {{ argocd_admin_password.stdout }}
+      Password: {{ argocd_admin_password }}
