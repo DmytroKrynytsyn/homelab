@@ -1,5 +1,0 @@
-- name: Restart otelcol-contrib
-  systemd:
-    name: otelcol-contrib
-    state: restarted
-    enabled: true
