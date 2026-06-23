@@ -40,7 +40,8 @@ Storage-heavy workloads (VictoriaMetrics, VictoriaLogs) are pinned to `kserver` 
 | `k3s-argocd` | Installs ArgoCD, ArgoCD ingress route |
 | `k3s-gateway` | Gateway API CRDs, Envoy Gateway, GatewayClass |
 | `node-maintenance` | Systemd timer — cleans up old container images and logs |
-| `node-ollama-build` | Weekly systemd timer — builds fresh llama.cpp binaries on llmnodes, keeps last N timestamped builds + a `latest` symlink |
+| `node-ollama-build` | Weekly systemd timer — builds fresh llama.cpp binaries on ainodes, keeps last N timestamped builds + a `latest` symlink |
+| `node-ollama-model` | On-demand — downloads `ollama_model_url` (set per-group in `group_vars/aisnodes.yml` / `group_vars/aimnodes.yml`) into `/var/lib/llama-models`, removes the old model file |
 | `otelcol-contrib` | OpenTelemetry Collector — ships host metrics and logs to the cluster |
 | `ollama` | LLM inference on kbrain via Ollama |
 
@@ -56,7 +57,8 @@ Storage-heavy workloads (VictoriaMetrics, VictoriaLogs) are pinned to `kserver` 
 | `k3s-argocd.yml` | master | Installs ArgoCD |
 | `k3s-gateway.yml` | master | Gateway API, Envoy Gateway |
 | `node-maintenance.yml` | all | Node maintenance role |
-| `node-ollama-build.yml` | llmnodes | Weekly llama.cpp build role |
+| `node-ollama-build.yml` | ainodes | Weekly llama.cpp build role |
+| `node-ollama-model.yml` | aisnodes + aimnodes | Downloads each group's model (see `group_vars/`), removes the old one |
 | `brain.yml` | kbrain | otelcol + Ollama |
 
 ## Bootstrap

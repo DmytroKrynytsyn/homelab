@@ -1,0 +1,43 @@
+---
+- name: Ensure model directory exists
+  ansible.builtin.file:
+    path: "{{ ollama_model_dir }}"
+    state: directory
+    owner: root
+    group: root
+    mode: '0755'
+
+- name: Ensure model URL was provided
+  ansible.builtin.assert:
+    that:
+      - ollama_model_url | length > 0
+    fail_msg: "ollama_model_url must be set, e.g. -e ollama_model_url=https://huggingface.co/.../model.gguf"
+
+- name: Check whether this model file is already present
+  ansible.builtin.stat:
+    path: "{{ ollama_model_dir }}/{{ ollama_model_url | basename }}"
+  register: ollama_model_existing
+
+- name: Download model file
+  ansible.builtin.get_url:
+    url: "{{ ollama_model_url }}"
+    dest: "{{ ollama_model_dir }}/{{ ollama_model_url | basename }}"
+    owner: root
+    group: root
+    mode: '0644'
+  when: not ollama_model_existing.stat.exists
+
+- name: Find stale model files
+  ansible.builtin.find:
+    paths: "{{ ollama_model_dir }}"
+    file_type: file
+    excludes: "{{ ollama_model_url | basename }}"
+  register: ollama_model_stale_files
+
+- name: Remove stale model files
+  ansible.builtin.file:
+    path: "{{ item.path }}"
+    state: absent
+  loop: "{{ ollama_model_stale_files.files }}"
+  loop_control:
+    label: "{{ item.path }}"

@@ -1,5 +1,5 @@
 ---
-- hosts: llmnodes
+- hosts: ainodes
   become: true
   roles:
     - node-ollama-build

@@ -23,3 +23,14 @@
     enabled: true
     state: started
     daemon_reload: true
+
+- name: Check whether a build already exists
+  ansible.builtin.stat:
+    path: "{{ ollama_build_base_dir }}/latest"
+  register: ollama_build_latest
+
+- name: Run initial build so {{ ollama_build_base_dir }}/latest exists
+  ansible.builtin.systemd:
+    name: node-ollama-build.service
+    state: started
+  when: not ollama_build_latest.stat.exists

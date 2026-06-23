@@ -1,0 +1,5 @@
+---
+- hosts: aisnodes,aimnodes
+  become: true
+  roles:
+    - node-ollama-model

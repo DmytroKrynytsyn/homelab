@@ -8,3 +8,4 @@
 - import_playbook: k3s-gateway.yml
 - import_playbook: node-maintenance.yml
 - import_playbook: node-ollama-build.yml
+- import_playbook: node-ollama-model.yml
