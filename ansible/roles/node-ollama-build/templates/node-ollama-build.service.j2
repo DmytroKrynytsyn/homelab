@@ -1,0 +1,13 @@
+[Unit]
+Description=Build fresh llama.cpp binaries for Ollama use
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+Environment=HOME=/root
+ExecStart={{ ollama_build_script_path }}
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=node-ollama-build
+TimeoutStartSec=0

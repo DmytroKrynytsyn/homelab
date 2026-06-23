@@ -1,0 +1,11 @@
+---
+ollama_build_deps:
+  - git
+  - cmake
+  - gcc-c++
+  - glibc-static
+  - libstdc++-static
+ollama_build_repo_url: https://github.com/ggml-org/llama.cpp.git
+ollama_build_base_dir: /opt/ollama-build
+ollama_build_retain_count: 3
+ollama_build_script_path: /usr/local/bin/node-ollama-build.sh

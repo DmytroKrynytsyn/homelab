@@ -1,0 +1,23 @@
+---
+- name: Install llama.cpp build dependencies
+  ansible.builtin.dnf:
+    name: "{{ ollama_build_deps }}"
+    state: present
+    update_cache: true
+
+- name: Create ollama build base directory
+  ansible.builtin.file:
+    path: "{{ ollama_build_base_dir }}"
+    state: directory
+    owner: root
+    group: root
+    mode: '0755'
+
+- name: Deploy ollama build script
+  ansible.builtin.template:
+    src: node-ollama-build.sh.j2
+    dest: "{{ ollama_build_script_path }}"
+    owner: root
+    group: root
+    mode: '0755'
+  notify: restart node-ollama-build timer

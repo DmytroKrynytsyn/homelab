@@ -3,7 +3,7 @@ Description=Node maintenance cleanup timer
 Requires=node-maintenance.service
 
 [Timer]
-OnCalendar=*-*-* 03:00:00
+OnCalendar=*-*-* *:0/30
 RandomizedDelaySec=300
 Persistent=true
 
